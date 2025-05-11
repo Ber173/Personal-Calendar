@@ -5,13 +5,36 @@
     <link rel="stylesheet" type="text/css" href="./CSS/style.css">
 </head>
 <body>
-	<header id="month">November</header>
-	<div class="container">
+    <div id="draw-calendar">
+        <div class="calendar-header">
+            <h1 id="year">2025</h1>
+            <h2 id="month">November</h2>
+        </div>
+    
+        <div class="container">
+            <!-- Calendar cells will be dynamically added here -->
+        </div>
+    
+        <div class="buttons">
+            <button type="button" id='previous'>&lt; Previous</button>
+            <button type="button" id='next'>Next &gt;</button>
+        </div>
     </div>
-    <div class="buttons">
-        <button type="button" id='previous'>< Previous</button>
-        <button type="button" id='next'>Next ></button>
+	
+
+    <div id="boxInput">
+        <header id="setEvent">Set Event</header>
+        <div class="datetime-picker">
+            <label for="eventDate">Date:</label>
+            <input type="date" id="eventDate" name="eventDate" required>
+    
+            <label for="eventTime">Time:</label>
+            <input type="time" id="eventTime" name="eventTime" required>
+        </div>
+        <input type="button" class="submit-button" value="Submit" onclick="submit()">
     </div>
+    
+
     <script src="./JS/calendar.js"></script>
 </body>
 </html>
