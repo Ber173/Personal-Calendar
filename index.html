@@ -1,40 +1,71 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Calendar</title>
     <link rel="stylesheet" type="text/css" href="./CSS/style.css">
 </head>
+
 <body>
-    <div id="draw-calendar">
-        <div class="calendar-header">
-            <h1 id="year">2025</h1>
-            <h2 id="month">November</h2>
+    <div id="landingPage">
+        <h1>Welcome to the Calendar App</h1>
+        <button id="startButton">Start</button>
+    </div>
+
+    <div id="calendarApp" style="display: none;">
+        <div id="draw-calendar">
+            <div class="calendar-header">
+                <h1 id="year">2025</h1>
+                <h2 id="month">November</h2>
+            </div>
+
+            <div class="container">
+                <!-- Calendar cells will be dynamically added here -->
+            </div>
+
+            <div class="buttons">
+                <button type="button" id='previous'>&lt; Previous</button>
+                <button type="button" id='next'>Next &gt;</button>
+            </div>
         </div>
-    
-        <div class="container">
-            <!-- Calendar cells will be dynamically added here -->
-        </div>
-    
-        <div class="buttons">
-            <button type="button" id='previous'>&lt; Previous</button>
-            <button type="button" id='next'>Next &gt;</button>
+
+
+        <div id="boxInput">
+            <!-- Phần nhập sự kiện -->
+            <div id="setEventContainer">
+                <header id="setEvent">Set Event</header>
+
+                <div class="datetime-picker">
+                    <label for="eventName">Event Name:</label>
+                    <input type="text" id="eventName" name="eventName" required placeholder="Event name">
+
+                    <label for="eventDate">Date:</label>
+                    <input type="date" id="eventDate" name="eventDate" required>
+
+                    <label for="eventStart">Start Time:</label>
+                    <input type="time" id="eventStart" name="eventStart" required>
+
+                    <label for="eventEnd">End Time:</label>
+                    <input type="time" id="eventEnd" name="eventEnd" required>
+                </div>
+
+                <input type="button" class="submit-button" value="Submit" onclick="submitEvent()">
+            </div>
+
+            <!-- Phần danh sách sự kiện đã lưu -->
+            <div id="savedEventsContainer">
+                <h2>Saved Events:</h2>
+                <ul id="eventsList">
+                    <li>
+                        <div class="eventName">Sự kiện A</div>
+                        <div class="eventTime">10:00 - 11:00</div>
+                        <div class="eventHoverDetail">Xem chi tiết</div>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
-	
-
-    <div id="boxInput">
-        <header id="setEvent">Set Event</header>
-        <div class="datetime-picker">
-            <label for="eventDate">Date:</label>
-            <input type="date" id="eventDate" name="eventDate" required>
-    
-            <label for="eventTime">Time:</label>
-            <input type="time" id="eventTime" name="eventTime" required>
-        </div>
-        <input type="button" class="submit-button" value="Submit" onclick="submit()">
-    </div>
-    
-
     <script src="./JS/calendar.js"></script>
 </body>
+
 </html>
