@@ -21,7 +21,7 @@ let currentYear        = today.getFullYear();
 // “Start” button: hide landing, show & center calendarApp
 document.getElementById('startButton').addEventListener('click', () => {
   landingPage.style.display = 'none';
-  calendarApp.style.display = 'flex';    // ← flex to lay out side-by-side
+  calendarApp.style.display = 'flex';
 });
 
 // Next / Previous handlers
@@ -61,14 +61,17 @@ function getDateElement(date) {
   ele.addEventListener('mouseleave', () => ele.textContent = date);
   ele.addEventListener('click', ()     => showEventForDate(ele));
 
-  // Red dot if an event exists for this date
+  // Colored dot if events exist
   const events = JSON.parse(localStorage.getItem('events')) || [];
-  if (events.some(ev => {
-      const [y,m,d] = ev.date.split('-').map(Number);
-      return y===currentYear && m-1===currentMonthNumber && d===date;
-    })) {
+  const dotsForDate = events.filter(ev => {
+    const [y, m, d] = ev.date.split('-').map(Number);
+    return y === currentYear && m - 1 === currentMonthNumber && d === date;
+  });
+
+  if (dotsForDate.length > 0) {
     const dot = document.createElement('span');
     dot.className = 'event-dot';
+    dot.style.backgroundColor = dotsForDate[0].color || 'red'; // default red if no color
     ele.appendChild(dot);
   }
 
@@ -93,9 +96,9 @@ function refreshCalendar() {
 }
 
 // Event storage & display
-function saveEvent(date, name, start, end) {
+function saveEvent(date, name, start, end, color) {
   const events = JSON.parse(localStorage.getItem('events')) || [];
-  events.push({ name, date, start, end });
+  events.push({ name, date, start, end, color });
   localStorage.setItem('events', JSON.stringify(events));
   displayEvents();
   refreshCalendar();
@@ -112,6 +115,8 @@ function displayEvents() {
 
     const span = document.createElement('span');
     span.textContent = `${ev.name}: ${ev.date} ${ev.start}-${ev.end}`;
+    if (ev.color) span.style.color = ev.color;
+
     span.addEventListener('click', () => {
       currentYear        = Number(ev.date.split('-')[0]);
       currentMonthNumber = Number(ev.date.split('-')[1]) - 1;
@@ -135,68 +140,97 @@ function displayEvents() {
 
 function deleteEvent(index) {
   const events = JSON.parse(localStorage.getItem('events')) || [];
-  events.splice(index,1);
+  events.splice(index, 1);
   localStorage.setItem('events', JSON.stringify(events));
   displayEvents();
   refreshCalendar();
 }
-
 function showEventForDate(ele) {
-  const date = Number(ele.id);
-  const events = JSON.parse(localStorage.getItem('events')) || [];
-  const list = events.filter(ev => {
-    const [y,m,d] = ev.date.split('-').map(Number);
-    return y===currentYear && m-1===currentMonthNumber && d===date;
-  });
-
-  // Remove old popup
-  const prev = ele.querySelector('.eventsForDay');
-  if (prev) prev.remove();
-
-  // Build new popup
-  const popup = document.createElement('div');
-  popup.className = 'eventsForDay';
-  if (list.length) {
-    list.forEach(ev => {
-      const div = document.createElement('div');
-      div.textContent = `${ev.name}: ${ev.start}–${ev.end}`;
-      popup.appendChild(div);
+    const date = Number(ele.id);
+    const events = JSON.parse(localStorage.getItem('events')) || [];
+    const list = events.filter(ev => {
+      const [y, m, d] = ev.date.split('-').map(Number);
+      return y === currentYear && m - 1 === currentMonthNumber && d === date;
     });
-  } else {
-    popup.textContent = 'No events for this day.';
+  
+    // Nếu popup đã tồn tại thì không tạo lại
+    if (ele.querySelector('.eventsForDay')) return;
+  
+    const popup = document.createElement('div');
+    popup.className = 'eventsForDay';
+  
+    // Style gọn gàng và cuộn được
+    popup.style.maxHeight = '200px';
+    popup.style.overflowY = 'auto';
+    popup.style.background = '#fff';
+    popup.style.border = '1px solid #ccc';
+    popup.style.padding = '8px';
+    popup.style.borderRadius = '6px';
+    popup.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+    popup.style.marginTop = '4px';
+    popup.style.zIndex = '10';
+    popup.style.position = 'absolute';
+  
+    if (list.length) {
+      const header = document.createElement('div');
+      header.textContent = `${list.length} event${list.length > 1 ? 's' : ''}`;
+      header.style.fontWeight = 'bold';
+      header.style.marginBottom = '6px';
+      popup.appendChild(header);
+  
+      list.forEach(ev => {
+        const div = document.createElement('div');
+        div.textContent = `${ev.name}: ${ev.start}–${ev.end}`;
+        div.style.backgroundColor = ev.color || '#444';
+        div.style.color = '#fff';
+        div.style.padding = '4px 8px';
+        div.style.borderRadius = '5px';
+        div.style.margin = '4px 0';
+        popup.appendChild(div);
+      });
+    } else {
+      popup.textContent = 'No events for this day.';
+    }
+  
+    ele.appendChild(popup);
+  
+    // 👇 Thêm xử lý ẩn popup khi rời khỏi cả .date và popup
+    ele.addEventListener('mouseleave', () => {
+      setTimeout(() => {
+        // Nếu chuột không còn trong ele hoặc popup thì xóa
+        if (!ele.matches(':hover') && !popup.matches(':hover')) {
+          popup.remove();
+        }
+      }, 200); // delay nhẹ để tránh mất khi di chuyển vào popup
+    });
+  
+    popup.addEventListener('mouseleave', () => {
+      setTimeout(() => {
+        if (!ele.matches(':hover') && !popup.matches(':hover')) {
+          popup.remove();
+        }
+      }, 200);
+    });
   }
-  ele.appendChild(popup);
-}
-
-document.getElementById('startButton').addEventListener('click', () => {
-    // 1) fade out landing...
-    landingPage.classList.add('fade-out');
   
-    // 2) after fade-out ends, hide landing & start fade-in of calendarApp
-    landingPage.addEventListener('animationend', () => {
-      landingPage.style.display = 'none';
   
-      // prepare calendarApp for fade-in
-      calendarApp.style.visibility = 'visible';
-      calendarApp.classList.add('fade-in');
-    }, { once: true });
-  });
   
-
-// Hook up “Submit” button
+// Submit button
 document.querySelector('.submit-button').addEventListener('click', () => {
   const name  = document.getElementById('eventName').value;
   const date  = document.getElementById('eventDate').value;
   const start = document.getElementById('eventStart').value;
   const end   = document.getElementById('eventEnd').value;
+  const color = document.getElementById('eventColor').value;
 
   if (!name || !date || !start || !end) {
     return alert('Please fill in all fields!');
   }
-  saveEvent(date, name, start, end);
+
+  saveEvent(date, name, start, end, color);
 
   // Clear inputs
-  ['eventName','eventDate','eventStart','eventEnd'].forEach(id => {
+  ['eventName', 'eventDate', 'eventStart', 'eventEnd', 'eventColor'].forEach(id => {
     document.getElementById(id).value = '';
   });
 });
