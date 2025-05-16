@@ -1,4 +1,5 @@
-// Grab elements
+// ===================== Grab elements =====================
+// Truy cập các phần tử HTML chính trong giao diện người dùng
 const calendarElement = document.querySelector('.container');
 const monthElement    = document.querySelector('#month');
 const yearElement     = document.querySelector('#year');
@@ -7,24 +8,27 @@ const prevBtn         = document.querySelector('#previous');
 const landingPage     = document.getElementById('landingPage');
 const calendarApp     = document.getElementById('calendarApp');
 
-// Month & day names
-const months    = ['January','February','March','April','May','June',
-                   'July','August','September','October','November','December'];
+// ===================== Constants =====================
+// Mảng tên tháng và ngày, số ngày trong từng tháng
+const months    = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const days      = ['Sun.','Mon.','Tue.','Wed.','Thu.','Fri.','Sat.'];
 const monthDays = [31,28,31,30,31,30,31,31,30,31,30,31];
 
-// Default to today's month/year
+// ===================== Initial Date Setup =====================
+// Khởi tạo ngày hiện tại và gán giá trị mặc định cho tháng/năm đang xem
 const today = new Date();
 let currentMonthNumber = today.getMonth();
 let currentYear        = today.getFullYear();
 
-// “Start” button: hide landing, show & center calendarApp
+// ===================== Landing Page Handler =====================
+// Xử lý khi người dùng nhấn "Start" – ẩn trang chào và hiển thị ứng dụng lịch
 document.getElementById('startButton').addEventListener('click', () => {
   landingPage.style.display = 'none';
   calendarApp.style.display = 'flex';
 });
 
-// Next / Previous handlers
+// ===================== Navigation Handlers =====================
+// Điều hướng tháng tiếp theo
 nextBtn.addEventListener('click', () => {
   if (currentMonthNumber < 11) {
     currentMonthNumber++;
@@ -34,6 +38,8 @@ nextBtn.addEventListener('click', () => {
   }
   refreshCalendar();
 });
+
+// Điều hướng tháng trước
 prevBtn.addEventListener('click', () => {
   if (currentMonthNumber > 0) {
     currentMonthNumber--;
@@ -44,12 +50,23 @@ prevBtn.addEventListener('click', () => {
   refreshCalendar();
 });
 
-// Helpers to build the calendar
+// ===================== Helper Functions =====================
+
+/**
+ * Trả về tên thứ tương ứng với ngày truyền vào
+ * @param {number} date - Ngày trong tháng
+ * @returns {string} - Tên thứ (Mon., Tue.,...)
+ */
 function determineDay(date) {
   const d = new Date(currentYear, currentMonthNumber, date);
   return days[d.getDay()];
 }
 
+/**
+ * Tạo một phần tử ngày trên lịch và xử lý sự kiện liên quan
+ * @param {number} date - Ngày trong tháng
+ * @returns {HTMLElement} - Phần tử DOM của ngày
+ */
 function getDateElement(date) {
   const ele = document.createElement('div');
   ele.id = date;
@@ -61,7 +78,7 @@ function getDateElement(date) {
   ele.addEventListener('mouseleave', () => ele.textContent = date);
   ele.addEventListener('click', ()     => showEventForDate(ele));
 
-  // Colored dot if events exist
+  // Kiểm tra và thêm chấm tròn màu nếu có sự kiện trong ngày này
   const events = JSON.parse(localStorage.getItem('events')) || [];
   const dotsForDate = events.filter(ev => {
     const [y, m, d] = ev.date.split('-').map(Number);
@@ -71,13 +88,16 @@ function getDateElement(date) {
   if (dotsForDate.length > 0) {
     const dot = document.createElement('span');
     dot.className = 'event-dot';
-    dot.style.backgroundColor = dotsForDate[0].color || 'red'; // default red if no color
+    dot.style.backgroundColor = dotsForDate[0].color || 'red';
     ele.appendChild(dot);
   }
 
   return ele;
 }
 
+/**
+ * Hiển thị toàn bộ lịch của tháng hiện tại
+ */
 function populateCalendar() {
   monthElement.textContent = months[currentMonthNumber];
   yearElement.textContent  = currentYear;
@@ -86,16 +106,31 @@ function populateCalendar() {
   }
 }
 
+/**
+ * Xoá toàn bộ ngày khỏi lịch
+ */
 function depopulateCalendar() {
   calendarElement.innerHTML = '';
 }
 
+/**
+ * Làm mới lịch bằng cách xoá cũ và tạo lại
+ */
 function refreshCalendar() {
   depopulateCalendar();
   populateCalendar();
 }
 
-// Event storage & display
+// ===================== Event Management =====================
+
+/**
+ * Lưu một sự kiện mới vào localStorage
+ * @param {string} date
+ * @param {string} name
+ * @param {string} start
+ * @param {string} end
+ * @param {string} color
+ */
 function saveEvent(date, name, start, end, color) {
   const events = JSON.parse(localStorage.getItem('events')) || [];
   events.push({ name, date, start, end, color });
@@ -104,6 +139,9 @@ function saveEvent(date, name, start, end, color) {
   refreshCalendar();
 }
 
+/**
+ * Hiển thị danh sách sự kiện ở sidebar
+ */
 function displayEvents() {
   const container = document.getElementById('eventsList');
   const events    = JSON.parse(localStorage.getItem('events')) || [];
@@ -117,6 +155,7 @@ function displayEvents() {
     span.textContent = `${ev.name}: ${ev.date} ${ev.start}-${ev.end}`;
     if (ev.color) span.style.color = ev.color;
 
+    // Nhấn vào sự kiện để chuyển lịch đến ngày tương ứng
     span.addEventListener('click', () => {
       currentYear        = Number(ev.date.split('-')[0]);
       currentMonthNumber = Number(ev.date.split('-')[1]) - 1;
@@ -138,6 +177,10 @@ function displayEvents() {
   });
 }
 
+/**
+ * Xoá sự kiện theo chỉ số trong mảng
+ * @param {number} index
+ */
 function deleteEvent(index) {
   const events = JSON.parse(localStorage.getItem('events')) || [];
   events.splice(index, 1);
@@ -145,77 +188,79 @@ function deleteEvent(index) {
   displayEvents();
   refreshCalendar();
 }
+
+/**
+ * Hiển thị popup sự kiện cho một ngày cụ thể
+ * @param {HTMLElement} ele - Phần tử DOM của ngày
+ */
 function showEventForDate(ele) {
-    const date = Number(ele.id);
-    const events = JSON.parse(localStorage.getItem('events')) || [];
-    const list = events.filter(ev => {
-      const [y, m, d] = ev.date.split('-').map(Number);
-      return y === currentYear && m - 1 === currentMonthNumber && d === date;
+  const date = Number(ele.id);
+  const events = JSON.parse(localStorage.getItem('events')) || [];
+  const list = events.filter(ev => {
+    const [y, m, d] = ev.date.split('-').map(Number);
+    return y === currentYear && m - 1 === currentMonthNumber && d === date;
+  });
+
+  if (ele.querySelector('.eventsForDay')) return;
+
+  const popup = document.createElement('div');
+  popup.className = 'eventsForDay';
+
+  // Style cho popup
+  popup.style.maxHeight = '200px';
+  popup.style.overflowY = 'auto';
+  popup.style.background = '#fff';
+  popup.style.border = '1px solid #ccc';
+  popup.style.padding = '8px';
+  popup.style.borderRadius = '6px';
+  popup.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+  popup.style.marginTop = '4px';
+  popup.style.zIndex = '10';
+  popup.style.position = 'absolute';
+
+  if (list.length) {
+    const header = document.createElement('div');
+    header.textContent = `${list.length} event${list.length > 1 ? 's' : ''}`;
+    header.style.fontWeight = 'bold';
+    header.style.marginBottom = '6px';
+    popup.appendChild(header);
+
+    list.forEach(ev => {
+      const div = document.createElement('div');
+      div.textContent = `${ev.name}: ${ev.start}–${ev.end}`;
+      div.style.backgroundColor = ev.color || '#444';
+      div.style.color = '#fff';
+      div.style.padding = '4px 8px';
+      div.style.borderRadius = '5px';
+      div.style.margin = '4px 0';
+      popup.appendChild(div);
     });
-  
-    // Nếu popup đã tồn tại thì không tạo lại
-    if (ele.querySelector('.eventsForDay')) return;
-  
-    const popup = document.createElement('div');
-    popup.className = 'eventsForDay';
-  
-    // Style gọn gàng và cuộn được
-    popup.style.maxHeight = '200px';
-    popup.style.overflowY = 'auto';
-    popup.style.background = '#fff';
-    popup.style.border = '1px solid #ccc';
-    popup.style.padding = '8px';
-    popup.style.borderRadius = '6px';
-    popup.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-    popup.style.marginTop = '4px';
-    popup.style.zIndex = '10';
-    popup.style.position = 'absolute';
-  
-    if (list.length) {
-      const header = document.createElement('div');
-      header.textContent = `${list.length} event${list.length > 1 ? 's' : ''}`;
-      header.style.fontWeight = 'bold';
-      header.style.marginBottom = '6px';
-      popup.appendChild(header);
-  
-      list.forEach(ev => {
-        const div = document.createElement('div');
-        div.textContent = `${ev.name}: ${ev.start}–${ev.end}`;
-        div.style.backgroundColor = ev.color || '#444';
-        div.style.color = '#fff';
-        div.style.padding = '4px 8px';
-        div.style.borderRadius = '5px';
-        div.style.margin = '4px 0';
-        popup.appendChild(div);
-      });
-    } else {
-      popup.textContent = 'No events for this day.';
-    }
-  
-    ele.appendChild(popup);
-  
-    // 👇 Thêm xử lý ẩn popup khi rời khỏi cả .date và popup
-    ele.addEventListener('mouseleave', () => {
-      setTimeout(() => {
-        // Nếu chuột không còn trong ele hoặc popup thì xóa
-        if (!ele.matches(':hover') && !popup.matches(':hover')) {
-          popup.remove();
-        }
-      }, 200); // delay nhẹ để tránh mất khi di chuyển vào popup
-    });
-  
-    popup.addEventListener('mouseleave', () => {
-      setTimeout(() => {
-        if (!ele.matches(':hover') && !popup.matches(':hover')) {
-          popup.remove();
-        }
-      }, 200);
-    });
+  } else {
+    popup.textContent = 'No events for this day.';
   }
-  
-  
-  
-// Submit button
+
+  ele.appendChild(popup);
+
+  // Xử lý ẩn popup nếu chuột rời khỏi
+  ele.addEventListener('mouseleave', () => {
+    setTimeout(() => {
+      if (!ele.matches(':hover') && !popup.matches(':hover')) {
+        popup.remove();
+      }
+    }, 200);
+  });
+
+  popup.addEventListener('mouseleave', () => {
+    setTimeout(() => {
+      if (!ele.matches(':hover') && !popup.matches(':hover')) {
+        popup.remove();
+      }
+    }, 200);
+  });
+}
+
+// ===================== Submit Event =====================
+// Xử lý khi nhấn nút "Submit" để thêm sự kiện
 document.querySelector('.submit-button').addEventListener('click', () => {
   const name  = document.getElementById('eventName').value;
   const date  = document.getElementById('eventDate').value;
@@ -229,13 +274,14 @@ document.querySelector('.submit-button').addEventListener('click', () => {
 
   saveEvent(date, name, start, end, color);
 
-  // Clear inputs
+  // Xoá dữ liệu trong các ô input
   ['eventName', 'eventDate', 'eventStart', 'eventEnd', 'eventColor'].forEach(id => {
     document.getElementById(id).value = '';
   });
 });
 
-// On page load
+// ===================== Page Load =====================
+// Khởi tạo dữ liệu khi tải trang
 window.addEventListener('load', () => {
   displayEvents();
   populateCalendar();
